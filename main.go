@@ -117,9 +117,7 @@ func crawl(c *colly.Collector, url string, pi map[string]pageInfo) map[string]pa
 
 	links := make(map[string]bool)
 
-	// extract status code and content type
 	c.OnResponse(func(r *colly.Response) {
-		//log.Println("visiting", p.Url, "response received", r.StatusCode)
 		p.StatusCode = r.StatusCode
 		headers := *r.Headers
 		p.ContentType = headers.Get("Content-Type")
@@ -129,7 +127,6 @@ func crawl(c *colly.Collector, url string, pi map[string]pageInfo) map[string]pa
 		p.StatusCode = r.StatusCode
 	})
 
-	// get and count links
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))
 		if _, exists := pi[link]; IsUrl(link) && !exists {
@@ -178,7 +175,7 @@ func (p *pageInfo) writeCSVLabels() []string {
 
 func (p *pageInfo) writeCSVLine() []string {
 	return []string{
-		url.QueryEscape(p.Url),
+		p.Url,
 		p.ContentType,
 		fmt.Sprint(p.StatusCode),
 		fmt.Sprint(p.Links),
