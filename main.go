@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -75,7 +74,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	sort.Strings(keys)
 
-	csvFile, err := os.Create(domain + ".csv")
+	filename := domain + ".csv"
+
+	csvFile, err := os.Create(filename)
 	if err != nil {
 		log.Fatalf("failed creating file: %s", err)
 	}
@@ -90,14 +91,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	csvwriter.Flush()
 
-	// dump results
-	b, err := json.Marshal(root)
-	if err != nil {
-		log.Println("failed to serialize response:", err)
-		return
-	}
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(b)
+	//b, err := json.Marshal(root)
+	data, err := os.ReadFile(filename)
+	check(err)
+	w.Header().Add("Content-Type", "text/csv")
+	w.Header().Add("Content-Disposition", `attachment; filename="`+filename+`"`)
+	w.Write(data)
+	err = os.Remove(filename)
+	check(err)
 }
 
 func crawl(c *colly.Collector, url string, pi map[string]pageInfo) map[string]pageInfo {
@@ -181,5 +182,11 @@ func (p *pageInfo) writeCSVLine() []string {
 		p.ContentType,
 		fmt.Sprint(p.StatusCode),
 		fmt.Sprint(p.Links),
+	}
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
 	}
 }
