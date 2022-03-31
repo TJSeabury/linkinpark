@@ -34,16 +34,17 @@ func getDomain(uri string) string {
 	return parts[len(parts)-2] + "." + parts[len(parts)-1]
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func crawler(w http.ResponseWriter, r *http.Request) {
 	URL := r.URL.Query().Get("url")
 	if URL == "" {
 		log.Println("missing URL argument")
 		return
 	}
 
-	log.Println("Crawling ", URL, " . . . ")
-
 	domain := getDomain(URL)
+	URL = "https://" + domain
+
+	log.Println("Crawling", URL, " . . . ")
 
 	// Instantiate default collector
 	c := colly.NewCollector(
@@ -80,7 +81,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("failed creating file: %s", err)
 	}
-	defer csvFile.Close()
 
 	csvwriter := csv.NewWriter(csvFile)
 	var _p pageInfo
@@ -91,14 +91,20 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	csvwriter.Flush()
 
-	//b, err := json.Marshal(root)
 	data, err := os.ReadFile(filename)
 	check(err)
+
+	csvFile.Close()
+
+	log.Println("Deleteing", filename, " . . . ")
+	err = os.Remove(filename)
+	check(err)
+
+	log.Println("Serving", filename, " . . . ")
 	w.Header().Add("Content-Type", "text/csv")
 	w.Header().Add("Content-Disposition", `attachment; filename="`+filename+`"`)
 	w.Write(data)
-	err = os.Remove(filename)
-	check(err)
+
 }
 
 func crawl(c *colly.Collector, url string, pi map[string]pageInfo) map[string]pageInfo {
@@ -125,6 +131,7 @@ func crawl(c *colly.Collector, url string, pi map[string]pageInfo) map[string]pa
 		headers := *r.Headers
 		p.ContentType = headers.Get("Content-Type")
 	})
+
 	c.OnError(func(r *colly.Response, err error) {
 		log.Println("error:", r.StatusCode, err)
 		p.StatusCode = r.StatusCode
@@ -158,10 +165,11 @@ func crawl(c *colly.Collector, url string, pi map[string]pageInfo) map[string]pa
 }
 
 func main() {
-	// example usage: curl -s 'http://127.0.0.1:7171/?url=http://go-colly.org/'
-	addr := ":7171"
+	// example usage: curl -s 'http://127.0.0.1:42069/?url=http://go-colly.org/'
+	addr := ":7777"
 
-	http.HandleFunc("/", handler)
+	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.HandleFunc("/crawl/", crawler)
 
 	log.Println("listening on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
