@@ -1,24 +1,21 @@
 package main
 
 import (
-	"encoding/csv"
+	"encoding/json"
 	"log"
 	"net/http"
-	"os"
-	"sort"
-
-	"github.com/gocolly/colly"
 )
+
+type message struct {
+	uuid    string
+	message string
+}
 
 type dispatcher struct {
 	jobs map[string]job
 }
 
-func (d *dispatcher) Handler(rw http.ResponseWriter, r *http.Request) {
-
-}
-
-func crawler(w http.ResponseWriter, r *http.Request) {
+func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	URL := r.URL.Query().Get("url")
 	if URL == "" {
 		log.Println("missing URL argument")
@@ -28,66 +25,55 @@ func crawler(w http.ResponseWriter, r *http.Request) {
 	domain := getDomain(URL)
 	URL = "https://" + domain
 
-	log.Println("Crawling", URL, " . . . ")
+	j := NewJob(URL)
+	d.jobs[j.uuid] = j
+	go j.crawl()
 
-	// Instantiate default collector
-	c := colly.NewCollector(
-		// MaxDepth is 2, so only the links on the scraped page
-		// and links on those pages are visited
-		colly.MaxDepth(1),
-		colly.AllowedDomains(domain, "www."+domain),
-		colly.Async(true),
-	)
-
-	// Limit the maximum parallelism to 2
-	// This is necessary if the goroutines are dynamically
-	// created to control the limit of simultaneous requests.
-	//
-	// Parallelism can be controlled also by spawning fixed
-	// number of go routines.
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 8})
-
-	root := crawl(
-		j,
-		c,
-		URL,
-		make(map[string]pageInfo),
-	)
-
-	keys := make([]string, 0, len(root))
-	for k := range root {
-		keys = append(keys, k)
+	m := message{
+		uuid:    j.uuid,
+		message: "Crawling job started.",
 	}
-	sort.Strings(keys)
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(http.StatusCreated)
+	json.NewEncoder(rw).Encode(m)
+}
 
+func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var m message
+	err := decoder.Decode(&m)
+	check(err)
+	log.Println(m.uuid)
+
+	j, ok := d.jobs[m.uuid]
+	if !ok {
+		m.message = "No job with that UUID found."
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(rw).Encode(m)
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(http.StatusOK)
+	responseJob := job{
+		uuid:         j.uuid,
+		status:       j.status,
+		linksFound:   j.linksFound,
+		linksCrawled: j.linksCrawled,
+	}
+	json.NewEncoder(rw).Encode(responseJob)
+}
+
+func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 	filename := domain + ".csv"
 
-	csvFile, err := os.Create(filename)
-	if err != nil {
-		log.Fatalf("failed creating file: %s", err)
-	}
-
-	csvwriter := csv.NewWriter(csvFile)
-	var _p pageInfo
-	csvwriter.Write(_p.writeCSVLabels())
-	for _, k := range keys {
-		p := root[k]
-		csvwriter.Write(p.writeCSVLine())
-	}
-	csvwriter.Flush()
-
-	data, err := os.ReadFile(filename)
-	check(err)
-
-	csvFile.Close()
-
-	log.Println("Deleteing", filename, " . . . ")
-	err = os.Remove(filename)
-	check(err)
+	report := creatReport(root, filename)
 
 	log.Println("Serving", filename, " . . . ")
-	w.Header().Add("Content-Type", "text/csv")
-	w.Header().Add("Content-Disposition", `attachment; filename="`+filename+`"`)
-	w.Write(data)
-
+	rw.Header().Add("Content-Type", "text/csv")
+	rw.Header().Add(
+		"Content-Disposition",
+		`attachment; filename="`+filename+`"`,
+	)
+	rw.Write(report)
 }
