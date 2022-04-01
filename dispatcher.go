@@ -25,6 +25,12 @@ type dispatcher struct {
 
 func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	m := decode(r)
+
+	// message is the domain to crawl in this case.
+	// Definitelly a code smell that this requires a comment.
+	URL := m.message
+	if URL == "" || !IsUrl(URL) {
+		log.Println("Bad URL argument!")
 		return
 	}
 
@@ -35,7 +41,7 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	d.jobs[j.uuid] = j
 	go j.crawl()
 
-	m := message{
+	m = message{
 		uuid:    j.uuid,
 		message: "Crawling job started.",
 	}
