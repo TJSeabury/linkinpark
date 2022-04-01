@@ -30,7 +30,6 @@ func getDomain(uri string) string {
 
 func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[string]pageInfo {
 	if _, ok := pi[url]; ok || !IsUrl(url) {
-		//log.Println("!! Already visited ", url, " !!")
 		return make(map[string]pageInfo)
 	}
 
