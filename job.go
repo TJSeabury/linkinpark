@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/gocolly/colly"
 	"github.com/google/uuid"
 )
@@ -54,7 +52,7 @@ func (j *job) crawl() {
 	// Parallelism can be controlled also by spawning fixed
 	// number of go routines.
 	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 8})
-	log.Println("Crawling", j.domain, " . . . ")
+
 	j.data = crawl(
 		j,
 		c,
