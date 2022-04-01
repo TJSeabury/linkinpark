@@ -34,6 +34,8 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 		return make(map[string]pageInfo)
 	}
 
+	j.addLinksCrawled(1)
+
 	p := pageInfo{
 		Url: url,
 	}
@@ -60,6 +62,8 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 			}
 		}
 	})
+
+	j.addLinksFound(len(links))
 
 	c.Visit(p.Url)
 	c.Wait()
