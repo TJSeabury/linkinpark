@@ -6,6 +6,14 @@ import (
 	"net/http"
 )
 
+func decode(r *http.Request) message {
+	decoder := json.NewDecoder(r.Body)
+	var m message
+	err := decoder.Decode(&m)
+	check(err)
+	return m
+}
+
 type message struct {
 	uuid    string
 	message string
@@ -16,9 +24,7 @@ type dispatcher struct {
 }
 
 func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
-	URL := r.URL.Query().Get("url")
-	if URL == "" {
-		log.Println("missing URL argument")
+	m := decode(r)
 		return
 	}
 
@@ -39,11 +45,8 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var m message
-	err := decoder.Decode(&m)
-	check(err)
-	log.Println(m.uuid)
+	m := decode(r)
+	log.Println("Check", m.uuid)
 
 	j, ok := d.jobs[m.uuid]
 	if !ok {
@@ -65,7 +68,7 @@ func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
-	filename := domain + ".csv"
+	m := decode(r)
 
 	report := creatReport(root, filename)
 
