@@ -79,7 +79,17 @@ func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 	m := decode(r)
 	log.Println("Finish", m.uuid)
 
-	report := creatReport(root, filename)
+	j, ok := d.jobs[m.uuid]
+	if !ok {
+		m.message = "No job with that UUID found."
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(rw).Encode(m)
+	}
+
+	filename := j.domain + ".csv"
+
+	report := creatReport(j.data, filename)
 
 	log.Println("Serving", filename, " . . . ")
 	rw.Header().Add("Content-Type", "text/csv")
