@@ -39,6 +39,8 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 
 	j := NewJob(URL)
 	d.jobs[j.uuid] = j
+	log.Println("Started", j.uuid)
+	log.Println("Crawling", j.domain, " . . . ")
 	go j.crawl()
 
 	m = message{
@@ -75,6 +77,7 @@ func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
 
 func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 	m := decode(r)
+	log.Println("Finish", m.uuid)
 
 	report := creatReport(root, filename)
 
