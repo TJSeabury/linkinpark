@@ -5,10 +5,6 @@ import (
 	"net/http"
 )
 
-
-
-
-
 func main() {
 	// example usage: curl -s 'http://127.0.0.1:42069/?url=http://go-colly.org/'
 	addr := ":7777"
@@ -16,7 +12,10 @@ func main() {
 	d := dispatcher{}
 
 	http.Handle("/", http.FileServer(http.Dir("./static")))
-	http.Handle("/api/", d.Handler.)
+
+	http.HandleFunc("/api/start", d.Start)
+	http.HandleFunc("/api/check", d.Check)
+	http.HandleFunc("/api/finish", d.Finish)
 
 	log.Println("listening on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
