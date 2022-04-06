@@ -33,6 +33,8 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 		return make(map[string]pageInfo)
 	}
 
+	j.StatusChannel <- "Crawling"
+
 	j.addLinksCrawled(1)
 
 	p := pageInfo{
@@ -79,6 +81,12 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 		for k, v := range res {
 			pi[k] = v
 		}
+	}
+
+	j.DataChannel <- pi
+
+	if j.Domain == url {
+		j.StatusChannel <- "Finished"
 	}
 
 	return pi
