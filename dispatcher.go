@@ -15,12 +15,18 @@ func decode(r *http.Request) message {
 }
 
 type message struct {
-	uuid    string
-	message string
+	Uuid    string `json:"uuid"`
+	Message string `json:"message"`
 }
 
 type dispatcher struct {
 	jobs map[string]job
+}
+
+func NewDispatcher() dispatcher {
+	return dispatcher{
+		jobs: make(map[string]job),
+	}
 }
 
 func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
@@ -28,9 +34,13 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 
 	// message is the domain to crawl in this case.
 	// Definitelly a code smell that this requires a comment.
-	URL := m.message
-	if URL == "" || !IsUrl(URL) {
+	URL := m.Message
+	if URL == "" {
+		m.Message = "Bad URL argument!"
 		log.Println("Bad URL argument!")
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusCreated)
+		json.NewEncoder(rw).Encode(m)
 		return
 	}
 
@@ -38,14 +48,12 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	URL = "https://" + domain
 
 	j := NewJob(URL)
-	d.jobs[j.uuid] = j
-	log.Println("Started", j.uuid)
-	log.Println("Crawling", j.domain, " . . . ")
-	go j.crawl()
+	d.jobs[j.Uuid] = j
+	j.crawl()
 
 	m = message{
-		uuid:    j.uuid,
-		message: "Crawling job started.",
+		Uuid:    j.Uuid,
+		Message: "Crawling job started.",
 	}
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusCreated)
@@ -54,42 +62,48 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 
 func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
 	m := decode(r)
-	log.Println("Check", m.uuid)
+	log.Println("Check", m.Uuid)
 
-	j, ok := d.jobs[m.uuid]
+	j, ok := d.jobs[m.Uuid]
 	if !ok {
-		m.message = "No job with that UUID found."
+		m.Message = "No job with that UUID found."
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(rw).Encode(m)
+		return
 	}
+
+	j.checkData()
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 	responseJob := job{
-		uuid:         j.uuid,
-		status:       j.status,
-		linksFound:   j.linksFound,
-		linksCrawled: j.linksCrawled,
+		Uuid:         j.Uuid,
+		Status:       j.Status,
+		LinksFound:   j.LinksFound,
+		LinksCrawled: j.LinksCrawled,
 	}
 	json.NewEncoder(rw).Encode(responseJob)
 }
 
 func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 	m := decode(r)
-	log.Println("Finish", m.uuid)
+	log.Println("Finish", m.Uuid)
 
-	j, ok := d.jobs[m.uuid]
+	j, ok := d.jobs[m.Uuid]
 	if !ok {
-		m.message = "No job with that UUID found."
+		m.Message = "No job with that UUID found."
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(rw).Encode(m)
+		return
 	}
 
-	filename := j.domain + ".csv"
+	j.checkData()
 
-	report := creatReport(j.data, filename)
+	filename := getDomain(j.Domain) + ".csv"
+
+	report := creatReport(j.Data, filename)
 
 	log.Println("Serving", filename, " . . . ")
 	rw.Header().Add("Content-Type", "text/csv")
