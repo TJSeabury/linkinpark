@@ -9,7 +9,7 @@ func main() {
 	// example usage: curl -s 'http://127.0.0.1:42069/?url=http://go-colly.org/'
 	addr := ":7777"
 
-	d := dispatcher{}
+	d := NewDispatcher()
 
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 
