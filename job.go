@@ -58,7 +58,7 @@ func (j *job) crawl() {
 	j.Data = crawl(
 		j,
 		c,
-		j.Domain,
+		"http://"+j.Domain,
 		make(map[string]pageInfo),
 	)
 
