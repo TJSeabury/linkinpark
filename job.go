@@ -8,24 +8,20 @@ import (
 )
 
 type job struct {
-	Uuid          string
-	Status        string
-	StatusChannel chan string
-	Domain        string
-	LinksFound    int
-	LinksCrawled  int
-	Data          map[string]pageInfo
-	DataChannel   chan map[string]pageInfo
+	Uuid         string
+	Status       string
+	Domain       string
+	LinksFound   int
+	LinksCrawled int
+	Data         map[string]pageInfo
 }
 
 func NewJob(domain string) job {
 	id := uuid.New()
 	return job{
-		Uuid:          "job_" + id.String(),
-		Status:        "starting",
-		StatusChannel: make(chan string),
-		Domain:        domain,
-		DataChannel:   make(chan map[string]pageInfo),
+		Uuid:   "job_" + id.String(),
+		Status: "starting",
+		Domain: domain,
 	}
 }
 
@@ -38,13 +34,16 @@ func (j *job) addLinksCrawled(n int) {
 }
 
 func (j *job) crawl() {
+	log.Println("Started", j.Uuid, "with domain", j.Domain, ". . . ")
+
+	j.Status = "crawling"
+
 	// Instantiate default collector
 	c := colly.NewCollector(
 		// MaxDepth is 2, so only the links on the scraped page
 		// and links on those pages are visited
 		colly.MaxDepth(1),
-		colly.AllowedDomains(j.Domain, "www."+j.Domain),
-		colly.Async(true),
+		colly.AllowedDomains(j.Domain),
 	)
 
 	// Limit the maximum parallelism to 2
@@ -53,21 +52,13 @@ func (j *job) crawl() {
 	//
 	// Parallelism can be controlled also by spawning fixed
 	// number of go routines.
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 8})
+	//c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 8})
 
-	log.Println("Started", j.Uuid)
-	log.Println("Crawling", j.Domain, " . . . ")
-
-	go crawl(
+	j.Data = crawl(
 		j,
 		c,
 		j.Domain,
 		make(map[string]pageInfo),
 	)
-}
 
-func (j *job) checkData() *job {
-	j.Status = <-j.StatusChannel
-	j.Data = <-j.DataChannel
-	return j
 }
