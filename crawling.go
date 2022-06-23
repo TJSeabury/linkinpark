@@ -69,12 +69,12 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 		}
 	})
 
+	c.Visit(p.Url)
+	c.Wait()
+
 	log.Println("number of found links:", len(links))
 
 	j.addLinksFound(len(links))
-
-	c.Visit(p.Url)
-	c.Wait()
 
 	pi[url] = p
 
