@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gocolly/colly"
+	"github.com/gocolly/colly/v2"
 )
 
 func check(e error) {
