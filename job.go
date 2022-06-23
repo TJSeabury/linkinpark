@@ -62,4 +62,6 @@ func (j *job) crawl() {
 		make(map[string]pageInfo),
 	)
 
+	j.Status = "done"
+
 }
