@@ -52,18 +52,15 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 		p.StatusCode = r.StatusCode
 		headers := *r.Headers
 		p.ContentType = headers.Get("Content-Type")
-		log.Println(p)
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
 		log.Println("error:", r.StatusCode, err)
 		p.StatusCode = r.StatusCode
-		log.Println(p)
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println(link)
 		if IsUrl(link) {
 			p.Links++
 			if _, exists := pi[link]; !exists {
