@@ -43,7 +43,8 @@ func (j *job) crawl() {
 		// MaxDepth is 2, so only the links on the scraped page
 		// and links on those pages are visited
 		colly.MaxDepth(1),
-		colly.AllowedDomains(j.Domain),
+		colly.AllowedDomains(j.Domain, "www."+j.Domain),
+		colly.Async(true),
 	)
 
 	// Limit the maximum parallelism to 2
@@ -52,7 +53,7 @@ func (j *job) crawl() {
 	//
 	// Parallelism can be controlled also by spawning fixed
 	// number of go routines.
-	//c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 8})
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 8})
 
 	j.Data = crawl(
 		j,
