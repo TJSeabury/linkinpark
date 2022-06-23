@@ -90,9 +90,5 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 		}
 	}
 
-	if j.Domain == url {
-		j.Status = "done"
-	}
-
 	return pi
 }
