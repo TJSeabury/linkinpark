@@ -64,7 +64,6 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 
 func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
 	m := decode(r)
-	//log.Println("Check", m.Uuid)
 
 	j, ok := d.jobs[m.Uuid]
 	if !ok {
