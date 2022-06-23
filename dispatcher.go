@@ -45,9 +45,8 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	domain := getDomain(URL)
-	URL = "https://" + domain
 
-	j := NewJob(URL)
+	j := NewJob(domain)
 	d.jobs[j.Uuid] = &j
 
 	m = message{
