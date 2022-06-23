@@ -86,8 +86,7 @@
       } )();
       const limit = ms => diff() < ms;
 
-      while ( rData.message !== 'done' ) {
-        if ( limit( 10000 ) ) {
+        if ( limit( 1000 * 600 ) ) {
           const checkResponse = await fetch(
             '/api/check/',
             {
