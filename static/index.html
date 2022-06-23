@@ -86,6 +86,9 @@
       } )();
       const limit = ms => diff() < ms;
 
+      let done = false;
+
+      while ( rData.Status !== 'done' ) {
         if ( limit( 1000 * 600 ) ) {
           const checkResponse = await fetch(
             '/api/check/',
@@ -107,6 +110,8 @@
 
           setStatus( `${rData.Uuid} | ${rData.Status} | Elapsed: ${diff() / 1000} seconds | LinksFound: ${rData.LinksFound} | LinksCrawled: ${rData.LinksCrawled}` );
 
+          if ( rData.Status === 'done' ) done = true;
+
           wait( 100 );
 
         } else {
@@ -115,6 +120,8 @@
         }
 
       }
+
+      // go get the crawl data
 
     };
 
