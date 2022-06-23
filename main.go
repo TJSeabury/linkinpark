@@ -13,9 +13,9 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 
-	http.HandleFunc("/api/start", d.Start)
-	http.HandleFunc("/api/check", d.Check)
-	http.HandleFunc("/api/finish", d.Finish)
+	http.HandleFunc("/api/start/", d.Start)
+	http.HandleFunc("/api/check/", d.Check)
+	http.HandleFunc("/api/finish/", d.Finish)
 
 	log.Println("listening on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
