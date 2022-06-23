@@ -29,12 +29,15 @@ func getDomain(uri string) string {
 }
 
 func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[string]pageInfo {
+	log.Println("Checking " + url)
+
 	if _, ok := pi[url]; ok || !IsUrl(url) {
 		return make(map[string]pageInfo)
 	}
 
-	j.StatusChannel <- "Crawling"
+	log.Println("Crawling " + url)
 
+	j.addLinksFound(1)
 	j.addLinksCrawled(1)
 
 	p := pageInfo{
@@ -47,15 +50,18 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 		p.StatusCode = r.StatusCode
 		headers := *r.Headers
 		p.ContentType = headers.Get("Content-Type")
+		log.Println(p)
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
 		log.Println("error:", r.StatusCode, err)
 		p.StatusCode = r.StatusCode
+		log.Println(p)
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))
+		log.Println(link)
 		if IsUrl(link) {
 			p.Links++
 			if _, exists := pi[link]; !exists {
@@ -63,6 +69,8 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 			}
 		}
 	})
+
+	log.Println("number of found links:", len(links))
 
 	j.addLinksFound(len(links))
 
@@ -83,10 +91,8 @@ func crawl(j *job, c *colly.Collector, url string, pi map[string]pageInfo) map[s
 		}
 	}
 
-	j.DataChannel <- pi
-
 	if j.Domain == url {
-		j.StatusChannel <- "Finished"
+		j.Status = "done"
 	}
 
 	return pi
