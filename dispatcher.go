@@ -20,12 +20,12 @@ type message struct {
 }
 
 type dispatcher struct {
-	jobs map[string]job
+	jobs map[string]*job
 }
 
 func NewDispatcher() dispatcher {
 	return dispatcher{
-		jobs: make(map[string]job),
+		jobs: make(map[string]*job),
 	}
 }
 
@@ -48,8 +48,7 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	URL = "https://" + domain
 
 	j := NewJob(URL)
-	d.jobs[j.Uuid] = j
-	j.crawl()
+	d.jobs[j.Uuid] = &j
 
 	m = message{
 		Uuid:    j.Uuid,
@@ -58,11 +57,14 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusCreated)
 	json.NewEncoder(rw).Encode(m)
+
+	j.crawl()
+
 }
 
 func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
 	m := decode(r)
-	log.Println("Check", m.Uuid)
+	//log.Println("Check", m.Uuid)
 
 	j, ok := d.jobs[m.Uuid]
 	if !ok {
@@ -72,8 +74,6 @@ func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(rw).Encode(m)
 		return
 	}
-
-	j.checkData()
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
@@ -98,8 +98,6 @@ func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(rw).Encode(m)
 		return
 	}
-
-	j.checkData()
 
 	filename := getDomain(j.Domain) + ".csv"
 
