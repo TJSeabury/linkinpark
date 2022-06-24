@@ -7,14 +7,6 @@ import (
 	"strings"
 )
 
-func decode(r *http.Request) message {
-	decoder := json.NewDecoder(r.Body)
-	var m message
-	err := decoder.Decode(&m)
-	check(err)
-	return m
-}
-
 type message struct {
 	Uuid    string `json:"uuid"`
 	Message string `json:"message"`
