@@ -19,10 +19,29 @@ type job struct {
 
 func NewJob(domain string) job {
 	id := uuid.New()
+
+	// Instantiate default collector
+	crawler := colly.NewCollector(
+		// MaxDepth is 2, so only the links on the scraped page
+		// and links on those pages are visited
+		colly.MaxDepth(1),
+		colly.AllowedDomains(domain, "www."+domain),
+		colly.Async(),
+	)
+
+	// Limit the maximum parallelism to 2
+	// This is necessary if the goroutines are dynamically
+	// created to control the limit of simultaneous requests.
+	//
+	// Parallelism can be controlled also by spawning fixed
+	// number of go routines.
+	crawler.Limit(&colly.LimitRule{Parallelism: 8})
+
 	return job{
-		Uuid:   "job_" + id.String(),
-		Status: "starting",
-		Domain: domain,
+		Uuid:    "job_" + id.String(),
+		Status:  "starting",
+		Domain:  domain,
+		Crawler: crawler,
 	}
 }
 
@@ -34,27 +53,10 @@ func (j *job) addLinksCrawled(n int) {
 	j.LinksCrawled += n
 }
 
-func (j *job) start() {
+func (j *job) Start() {
 	log.Println("Started", j.Uuid, "with domain", j.Domain, ". . . ")
 
 	j.Status = "crawling"
-
-	// Instantiate default collector
-	c := colly.NewCollector(
-		// MaxDepth is 2, so only the links on the scraped page
-		// and links on those pages are visited
-		colly.MaxDepth(1),
-		colly.AllowedDomains(j.Domain, "www."+j.Domain),
-		colly.Async(),
-	)
-
-	// Limit the maximum parallelism to 2
-	// This is necessary if the goroutines are dynamically
-	// created to control the limit of simultaneous requests.
-	//
-	// Parallelism can be controlled also by spawning fixed
-	// number of go routines.
-	c.Limit(&colly.LimitRule{Parallelism: 8})
 
 	j.Data = j.crawl(
 		"http://"+j.Domain,
