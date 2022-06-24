@@ -91,6 +91,14 @@ func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if j.Status != "done" {
+		m.Message = "That job is not yet done."
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusAccepted)
+		json.NewEncoder(rw).Encode(m)
+		return
+	}
+
 	filename := j.Domain + ".csv"
 
 	report := creatReport(j.Data, filename)
