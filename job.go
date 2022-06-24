@@ -14,6 +14,7 @@ type job struct {
 	LinksFound   int
 	LinksCrawled int
 	Data         map[string]pageInfo
+	Crawler      *colly.Collector
 }
 
 func NewJob(domain string) job {
@@ -33,7 +34,7 @@ func (j *job) addLinksCrawled(n int) {
 	j.LinksCrawled += n
 }
 
-func (j *job) crawl() {
+func (j *job) start() {
 	log.Println("Started", j.Uuid, "with domain", j.Domain, ". . . ")
 
 	j.Status = "crawling"
@@ -55,13 +56,71 @@ func (j *job) crawl() {
 	// number of go routines.
 	c.Limit(&colly.LimitRule{Parallelism: 8})
 
-	j.Data = crawl(
-		j,
-		c,
+	j.Data = j.crawl(
 		"http://"+j.Domain,
 		make(map[string]pageInfo),
 	)
 
 	j.Status = "done"
 
+}
+
+func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
+	log.Println("Checking " + url)
+
+	_, exists := pi[url]
+	visited, _ := j.Crawler.HasVisited(url)
+	if exists || !IsUrl(url) || visited {
+		return make(map[string]pageInfo)
+	}
+
+	log.Println("Crawling " + url)
+
+	j.addLinksFound(1)
+	j.addLinksCrawled(1)
+
+	p := pageInfo{
+		Url: url,
+	}
+
+	links := make(map[string]bool)
+
+	j.Crawler.OnResponse(func(r *colly.Response) {
+		p.StatusCode = r.StatusCode
+		headers := *r.Headers
+		p.ContentType = headers.Get("Content-Type")
+	})
+
+	j.Crawler.OnError(func(r *colly.Response, err error) {
+		log.Println("error:", r.StatusCode, err)
+		p.StatusCode = r.StatusCode
+	})
+
+	j.Crawler.OnHTML("a[href]", func(e *colly.HTMLElement) {
+		link := e.Request.AbsoluteURL(e.Attr("href"))
+		if IsUrl(link) {
+			p.Links++
+			if _, exists := pi[link]; !exists {
+				links[link] = true
+			}
+		}
+	})
+
+	j.Crawler.Visit(p.Url)
+	j.Crawler.Wait()
+
+	log.Println("number of found links:", len(links))
+
+	j.addLinksFound(len(links))
+
+	pi[url] = p
+
+	for link := range links {
+		res := j.crawl(link, pi)
+		for k, v := range res {
+			pi[k] = v
+		}
+	}
+
+	return pi
 }
