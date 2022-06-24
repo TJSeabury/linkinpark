@@ -28,11 +28,11 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	// message is the domain to crawl in this case.
 	// Definitelly a code smell that this requires a comment.
 	URL := m.Message
-	if URL == "" {
+	if URL == "" || !IsUrl(URL) {
 		m.Message = "Bad URL argument!"
 		log.Println("Bad URL argument!")
 		rw.Header().Set("Content-Type", "application/json")
-		rw.WriteHeader(http.StatusCreated)
+		rw.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(rw).Encode(m)
 		return
 	}
