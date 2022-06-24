@@ -25,7 +25,7 @@
         </div>
       </form>
       <div id="status">
-        <p></p>
+        <p></p><br>
       </div>
     </section>
   </main>
@@ -121,7 +121,15 @@
 
       }
 
-      // go get the crawl data
+      if ( done ) {
+        let dlLink = document.createElement( 'a' );
+        dlLink.setAttribute(
+          'href',
+          `/api/finish/${uuid}`
+        );
+        dlLink.innerHTML = 'Dowload Report';
+        status.parentElement.appendChild( dlLink );
+      }
 
     };
 

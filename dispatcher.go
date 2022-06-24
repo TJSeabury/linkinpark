@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func decode(r *http.Request) message {
@@ -85,8 +86,9 @@ func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
-	m := decode(r)
-	log.Println("Finish", m.Uuid)
+	var m message
+	m.Uuid = strings.TrimPrefix(r.URL.Path, "/api/finish/")
+	log.Println("Getting job:", m.Uuid)
 
 	j, ok := d.jobs[m.Uuid]
 	if !ok {
@@ -97,7 +99,7 @@ func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filename := getDomain(j.Domain) + ".csv"
+	filename := j.Domain + ".csv"
 
 	report := creatReport(j.Data, filename)
 
