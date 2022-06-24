@@ -50,7 +50,7 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusCreated)
 	json.NewEncoder(rw).Encode(m)
 
-	go j.crawl()
+	go j.start()
 
 }
 
