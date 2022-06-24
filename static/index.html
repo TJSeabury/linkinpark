@@ -76,6 +76,12 @@
       );
 
       let rData = await response.json();
+
+      if ( response.status === 422 ) {
+        setStatus( rData.message );
+        return;
+      }
+
       const uuid = rData.uuid;
 
       setStatus( rData.message );
