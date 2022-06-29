@@ -25,7 +25,10 @@
         </div>
       </form>
       <div id="status">
-        <p></p><br>
+        <p></p>
+      </div>
+      <div id="download-link">
+        <p></p>
       </div>
     </section>
   </main>
@@ -46,6 +49,15 @@
     const status = document.querySelector( '#status > p' );
     const setStatus = value => {
       status.innerHTML = value;
+    };
+
+    const downloadLink = document.querySelector( '#download-link > p' );
+    const clearDownloadLink = () => {
+      downloadLink.innerHTML = null;
+    };
+    const setDownloadLink = linkElement => {
+      clearDownloadLink();
+      downloadLink.appendChild( linkElement );
     };
 
     crawlForm.addEventListener( 'input', ev => {
@@ -134,7 +146,11 @@
           `/api/finish/${uuid}`
         );
         dlLink.innerHTML = 'Dowload Report';
-        status.parentElement.appendChild( dlLink );
+        dlLink.addEventListener(
+          'click',
+          clearDownloadLink
+        );
+        setDownloadLink( dlLink );
       }
 
     };
