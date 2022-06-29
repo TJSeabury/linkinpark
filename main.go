@@ -17,5 +17,5 @@ func main() {
 	http.HandleFunc("/api/finish/", d.Finish)
 
 	//log.Println("listening on", addr)
-	//log.Fatal(http.ListenAndServe(addr, nil))
+	http.ListenAndServe(addr, nil)
 }
