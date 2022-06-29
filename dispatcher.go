@@ -110,4 +110,7 @@ func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 		`attachment; filename="`+filename+`"`,
 	)
 	rw.Write(report)
+
+	// delete data to save memory
+	delete(d.jobs, m.Uuid)
 }
