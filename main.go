@@ -1,16 +1,21 @@
 package main
 
 import (
+	"embed"
+	"io/fs"
 	"net/http"
 )
 
+//go:embed static
+var static embed.FS
+
 func main() {
-	// example usage: curl -s 'http://127.0.0.1:42069/?url=http://go-colly.org/'
 	addr := ":7777"
 
 	d := NewDispatcher()
 
-	http.Handle("/", http.FileServer(http.Dir("./static")))
+	contentStatic, _ := fs.Sub(static, "static")
+	http.Handle("/", http.FileServer(http.FS(contentStatic)))
 
 	http.HandleFunc("/api/start/", d.Start)
 	http.HandleFunc("/api/check/", d.Check)
