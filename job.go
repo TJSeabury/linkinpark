@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/gocolly/colly/v2"
 	"github.com/google/uuid"
 )
@@ -54,7 +52,7 @@ func (j *job) addLinksCrawled(n int) {
 }
 
 func (j *job) Start() {
-	log.Println("Started", j.Uuid, "with domain", j.Domain, ". . . ")
+	//log.Println("Started", j.Uuid, "with domain", j.Domain, ". . . ")
 
 	j.Status = "crawling"
 
@@ -68,7 +66,7 @@ func (j *job) Start() {
 }
 
 func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
-	log.Println("Checking " + url)
+	//log.Println("Checking " + url)
 
 	_, exists := pi[url]
 	visited, _ := j.Crawler.HasVisited(url)
@@ -76,7 +74,7 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 		return make(map[string]pageInfo)
 	}
 
-	log.Println("Crawling " + url)
+	//log.Println("Crawling " + url)
 
 	j.addLinksFound(1)
 	j.addLinksCrawled(1)
@@ -94,7 +92,7 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 	})
 
 	j.Crawler.OnError(func(r *colly.Response, err error) {
-		log.Println("error:", r.StatusCode, err)
+		//log.Println("error:", r.StatusCode, err)
 		p.StatusCode = r.StatusCode
 	})
 
@@ -111,7 +109,7 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 	j.Crawler.Visit(p.Url)
 	j.Crawler.Wait()
 
-	log.Println("number of found links:", len(links))
+	//log.Println("number of found links:", len(links))
 
 	j.addLinksFound(len(links))
 

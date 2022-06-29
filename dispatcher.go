@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -33,7 +32,7 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 
 	if err != nil || URL == "" || !IsUrl(URL) {
 		m.Message = "Bad URL argument! < " + URL + " > " + err.Error()
-		log.Println("Bad URL argument!")
+		//log.Println("Bad URL argument!")
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(rw).Encode(m)
@@ -81,7 +80,7 @@ func (d *dispatcher) Check(rw http.ResponseWriter, r *http.Request) {
 func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 	var m message
 	m.Uuid = strings.TrimPrefix(r.URL.Path, "/api/finish/")
-	log.Println("Getting job:", m.Uuid)
+	//log.Println("Getting job:", m.Uuid)
 
 	j, ok := d.jobs[m.Uuid]
 	if !ok {
@@ -104,7 +103,7 @@ func (d *dispatcher) Finish(rw http.ResponseWriter, r *http.Request) {
 
 	report := creatReport(j.Data, filename)
 
-	log.Println("Serving", filename, " . . . ")
+	//log.Println("Serving", filename, " . . . ")
 	rw.Header().Add("Content-Type", "text/csv")
 	rw.Header().Add(
 		"Content-Disposition",

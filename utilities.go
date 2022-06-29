@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -28,7 +27,7 @@ func IsHostReachable(host string) bool {
 	conn, err := net.DialTimeout("tcp", host+":80", timeout)
 	if err != nil {
 		//conn.Close()
-		log.Println(err)
+		//log.Println(err)
 		return false
 	}
 	conn.Close()

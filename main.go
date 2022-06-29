@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 )
 
@@ -17,6 +16,6 @@ func main() {
 	http.HandleFunc("/api/check/", d.Check)
 	http.HandleFunc("/api/finish/", d.Finish)
 
-	log.Println("listening on", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
+	//log.Println("listening on", addr)
+	//log.Fatal(http.ListenAndServe(addr, nil))
 }

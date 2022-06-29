@@ -33,7 +33,7 @@ func creatReport(root map[string]pageInfo, filename string) []byte {
 
 	csvFile.Close()
 
-	log.Println("Deleteing", filename, " . . . ")
+	//log.Println("Deleteing", filename, " . . . ")
 	err = os.Remove(filename)
 	check(err)
 
