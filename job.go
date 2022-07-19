@@ -105,14 +105,22 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 		p.StatusCode = r.StatusCode
 	})
 
-	j.Crawler.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		link := e.Request.AbsoluteURL(e.Attr("href"))
+	j.Crawler.OnHTML("a[href]", func(h *colly.HTMLElement) {
+		link := h.Request.AbsoluteURL(h.Attr("href"))
 		if IsUrl(link) {
 			p.Links++
 			if _, exists := pi[link]; !exists {
 				links[link] = true
 			}
 		}
+	})
+
+	j.Crawler.OnHTML("title", func(h *colly.HTMLElement) {
+		p.Title = h.Text
+	})
+
+	j.Crawler.OnHTML("h1", func(h *colly.HTMLElement) {
+		p.H1 = h.Text
 	})
 
 	log.Println("External:", p.External)

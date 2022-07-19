@@ -9,6 +9,8 @@ type pageInfo struct {
 	External    bool
 	Links       int
 	Size        int
+	Title       string
+	H1          string
 	RawHeaders  string
 }
 
@@ -20,10 +22,15 @@ func (p *pageInfo) writeCSVLabels() []string {
 		"External",
 		"Links",
 		"Size",
+		"Title",
+		"H1",
 		"RawHeaders",
 	}
 }
 
+/*
+ * Remember to count all the ducks in your basket before you put your eggs in a row.
+ */
 func (p *pageInfo) writeCSVLine() []string {
 	return []string{
 		p.Url,
@@ -32,6 +39,8 @@ func (p *pageInfo) writeCSVLine() []string {
 		fmt.Sprint(p.External),
 		fmt.Sprint(p.Links),
 		fmt.Sprint(p.Size),
+		fmt.Sprint(p.Title),
+		fmt.Sprint(p.H1),
 		fmt.Sprint(p.RawHeaders),
 	}
 }
