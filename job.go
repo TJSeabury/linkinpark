@@ -1,6 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"log"
+	"regexp"
+
 	"github.com/gocolly/colly/v2"
 	"github.com/google/uuid"
 )
@@ -22,8 +26,8 @@ func NewJob(domain string) job {
 	crawler := colly.NewCollector(
 		// MaxDepth is 2, so only the links on the scraped page
 		// and links on those pages are visited
-		colly.MaxDepth(1),
-		colly.AllowedDomains(domain, "www."+domain),
+		colly.MaxDepth(0),
+		colly.URLFilters(regexp.MustCompile(".*")),
 		colly.Async(),
 	)
 
@@ -33,7 +37,7 @@ func NewJob(domain string) job {
 	//
 	// Parallelism can be controlled also by spawning fixed
 	// number of go routines.
-	crawler.Limit(&colly.LimitRule{Parallelism: 2})
+	crawler.Limit(&colly.LimitRule{Parallelism: 4})
 
 	return job{
 		Uuid:    "job_" + id.String(),
@@ -66,7 +70,7 @@ func (j *job) Start() {
 }
 
 func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
-	//log.Println("Checking " + url)
+	log.Println("Checking " + url)
 
 	_, exists := pi[url]
 	visited, _ := j.Crawler.HasVisited(url)
@@ -74,13 +78,14 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 		return make(map[string]pageInfo)
 	}
 
-	//log.Println("Crawling " + url)
+	log.Println("Crawling " + url)
 
 	j.addLinksFound(1)
 	j.addLinksCrawled(1)
 
 	p := pageInfo{
-		Url: url,
+		Url:      url,
+		External: IsExternal(j.Domain, url),
 	}
 
 	links := make(map[string]bool)
@@ -90,6 +95,9 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 		headers := *r.Headers
 		p.ContentType = headers.Get("Content-Type")
 		p.Size = len(r.Body)
+		jsonHeaders, err := json.Marshal(headers)
+		p.RawHeaders = string(jsonHeaders)
+		check(err)
 	})
 
 	j.Crawler.OnError(func(r *colly.Response, _ error) {
@@ -107,10 +115,16 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 		}
 	})
 
-	j.Crawler.Visit(p.Url)
+	log.Println("External:", p.External)
+
+	if !p.External {
+		j.Crawler.Visit(p.Url)
+	} else {
+		j.Crawler.Head(p.Url)
+	}
 	j.Crawler.Wait()
 
-	//log.Println("number of found links:", len(links))
+	log.Println("number of found links:", len(links))
 
 	j.addLinksFound(len(links))
 
