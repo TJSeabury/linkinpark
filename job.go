@@ -33,7 +33,7 @@ func NewJob(domain string) job {
 	//
 	// Parallelism can be controlled also by spawning fixed
 	// number of go routines.
-	crawler.Limit(&colly.LimitRule{Parallelism: 8})
+	crawler.Limit(&colly.LimitRule{Parallelism: 2})
 
 	return job{
 		Uuid:    "job_" + id.String(),
@@ -89,9 +89,10 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 		p.StatusCode = r.StatusCode
 		headers := *r.Headers
 		p.ContentType = headers.Get("Content-Type")
+		p.Size = len(r.Body)
 	})
 
-	j.Crawler.OnError(func(r *colly.Response, err error) {
+	j.Crawler.OnError(func(r *colly.Response, _ error) {
 		//log.Println("error:", r.StatusCode, err)
 		p.StatusCode = r.StatusCode
 	})

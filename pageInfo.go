@@ -4,9 +4,10 @@ import "fmt"
 
 type pageInfo struct {
 	Url         string
-	StatusCode  int
 	ContentType string
+	StatusCode  int
 	Links       int
+	Size        int
 }
 
 func (p *pageInfo) writeCSVLabels() []string {
@@ -15,6 +16,7 @@ func (p *pageInfo) writeCSVLabels() []string {
 		"Content-Type",
 		"Status Code",
 		"Links",
+		"Size",
 	}
 }
 
@@ -24,5 +26,6 @@ func (p *pageInfo) writeCSVLine() []string {
 		p.ContentType,
 		fmt.Sprint(p.StatusCode),
 		fmt.Sprint(p.Links),
+		fmt.Sprint(p.Size),
 	}
 }
