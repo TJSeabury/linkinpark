@@ -28,13 +28,25 @@ p {
   margin: 0 0 1rem 0;
 }
 
+body {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+  min-height: 100vh;
+  padding: 8% 16%;
+  background: linear-gradient(
+      -42deg,
+      hsla(266, 92%, 29%, 0.66),
+      hsla(34, 100%, 50%, 0.96)
+    ),
+    url("/revolt.jpg");
+}
+
 main {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(45deg, #420690, #ff9000);
+  flex-direction: column;
 }
 
 main header {
