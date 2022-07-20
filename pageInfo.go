@@ -3,15 +3,16 @@ package main
 import "fmt"
 
 type pageInfo struct {
-	Url         string
-	ContentType string
-	StatusCode  int
-	External    bool
-	Links       int
-	Size        int
-	Title       string
-	H1          string
-	RawHeaders  string
+	Url          string
+	ContentType  string
+	StatusCode   int
+	ResponseTime int64
+	External     bool
+	Links        int
+	Size         int
+	Title        string
+	H1           string
+	RawHeaders   string
 }
 
 func (p *pageInfo) writeCSVLabels() []string {
@@ -19,6 +20,7 @@ func (p *pageInfo) writeCSVLabels() []string {
 		"Url",
 		"Content-Type",
 		"Status Code",
+		"Response Time (ms)",
 		"External",
 		"Links",
 		"Size",
@@ -36,6 +38,7 @@ func (p *pageInfo) writeCSVLine() []string {
 		p.Url,
 		p.ContentType,
 		fmt.Sprint(p.StatusCode),
+		fmt.Sprint(p.ResponseTime),
 		fmt.Sprint(p.External),
 		fmt.Sprint(p.Links),
 		fmt.Sprint(p.Size),

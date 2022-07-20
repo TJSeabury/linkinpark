@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/gocolly/colly/v2"
 	"github.com/google/uuid"
@@ -90,7 +91,10 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 
 	links := make(map[string]bool)
 
+	timeStart := time.Now().UnixMilli()
+
 	j.Crawler.OnResponse(func(r *colly.Response) {
+		p.ResponseTime = time.Now().UnixMilli() - timeStart
 		p.StatusCode = r.StatusCode
 		headers := *r.Headers
 		p.ContentType = headers.Get("Content-Type")
