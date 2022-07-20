@@ -53,7 +53,7 @@ main header {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   height: 20%;
 }
 
@@ -61,7 +61,7 @@ main section {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   height: 80%;
 }
 
