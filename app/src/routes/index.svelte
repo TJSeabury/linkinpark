@@ -38,6 +38,7 @@
 
 		if (response.status === 422) {
 			status = rData.message;
+			reset();
 			return;
 		}
 
