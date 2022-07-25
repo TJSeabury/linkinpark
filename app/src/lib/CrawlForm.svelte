@@ -7,7 +7,7 @@
 	});
 
 	const handleInput = (ev: Event) => {
-		let value = (ev as InputEvent).data || '';
+		let value = (ev.target as HTMLInputElement).value || '';
 		target.set(value);
 	};
 
