@@ -4,6 +4,8 @@ go 1.18
 
 require github.com/gocolly/colly/v2 v2.1.0
 
+require github.com/rs/cors v1.8.2 // indirect
+
 require (
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect

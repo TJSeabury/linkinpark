@@ -2,17 +2,21 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/rs/cors"
 )
 
 func main() {
 	addr := ":7777"
 
+	mux := http.NewServeMux()
+
 	d := NewDispatcher()
 
-	http.HandleFunc("/api/start/", d.Start)
-	http.HandleFunc("/api/check/", d.Check)
-	http.HandleFunc("/api/finish/", d.Finish)
+	mux.HandleFunc("/api/start/", d.Start)
+	mux.HandleFunc("/api/check/", d.Check)
+	mux.HandleFunc("/api/finish/", d.Finish)
 
-	//log.Println("listening on", addr)
-	http.ListenAndServe(addr, nil)
+	handler := cors.Default().Handler(mux)
+	http.ListenAndServe(addr, handler)
 }
