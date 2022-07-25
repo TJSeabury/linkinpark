@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { target } from '../stores';
-	import CrawlForm from '../lib/CrawlForm.svelte';
-	import { wait, diff } from '../lib/Utils';
-
-	const apiHost = 'http://localhost:7777';
+	import CrawlForm from '$lib/CrawlForm.svelte';
+	import { wait, diff } from '$lib/Utils';
+	import { apiHost } from '$lib/env';
 
 	let targetValue: string;
 
