@@ -1,3 +1,5 @@
 *.csv
 app/.vite/deps_temp/package.json
 linkinpark
+
+app/build/
