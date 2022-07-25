@@ -15,6 +15,13 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	f, err := os.OpenFile("error_log.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	log.SetOutput(f)
+
 	environment := os.Getenv("environment")
 	port := os.Getenv("port")
 
