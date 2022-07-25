@@ -31,7 +31,7 @@ func (d *dispatcher) Start(rw http.ResponseWriter, r *http.Request) {
 	domain, err := getDomain(URL)
 
 	if err != nil || URL == "" || !IsUrl(URL) {
-		m.Message = "Bad URL argument! < " + URL + " > " + err.Error()
+		m.Message = "Bad URL argument! " + URL + " > "
 		//log.Println("Bad URL argument!")
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusUnprocessableEntity)
