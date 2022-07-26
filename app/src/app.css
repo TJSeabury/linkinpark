@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Rock+3D&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 * {
 	box-sizing: border-box;
 }
@@ -30,10 +34,11 @@ p {
 
 body {
 	display: flex;
-	justify-content: flex-start;
-	align-items: flex-end;
+	justify-content: flex-end;
+	align-items: flex-start;
+	flex-direction: column;
 	min-height: 100vh;
-	padding: 8% 16%;
+
 	background: linear-gradient(-42deg, hsla(266, 92%, 29%, 0.66), hsla(34, 100%, 50%, 0.96)),
 		url('/revolt.jpg');
 }
@@ -43,6 +48,7 @@ main {
 	justify-content: center;
 	align-items: flex-start;
 	flex-direction: column;
+	padding: 8% 16%;
 }
 
 main header {
@@ -59,6 +65,10 @@ main section {
 	justify-content: center;
 	align-items: flex-start;
 	height: 80%;
+}
+
+footer {
+	width: 100%;
 }
 
 input[type='text'],
