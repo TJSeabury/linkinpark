@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -18,6 +20,40 @@ func check(e error) {
 func IsUrl(uri string) bool {
 	u, err := url.ParseRequestURI(uri)
 	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
+func NormalizeURL(rawURL string) (string, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	u.Scheme = strings.ToLower(u.Scheme)
+	u.Host = strings.ToLower(u.Host)
+
+	// Remove default ports
+	if (u.Scheme == "http" && u.Port() == "80") || (u.Scheme == "https" && u.Port() == "443") {
+		u.Host = strings.Split(u.Host, ":")[0]
+	}
+
+	// Canonicalize the path
+	u.Path = strings.ReplaceAll(u.Path, "../", "/")
+	u.Path = strings.ReplaceAll(u.Path, "./", "/")
+	if !strings.HasSuffix(u.Path, "/") && strings.Count(u.Path, "/") > 1 {
+		u.Path += "/"
+	}
+
+	// Sort query parameters
+	if u.RawQuery != "" {
+		queryParts := strings.Split(u.RawQuery, "&")
+		sort.Strings(queryParts)
+		u.RawQuery = strings.Join(queryParts, "&")
+	}
+
+	// Remove fragment
+	u.Fragment = ""
+
+	return u.String(), nil
 }
 
 func IsExternal(domain string, uri string) bool {
@@ -39,7 +75,7 @@ func IsHostReachable(host string) bool {
 }
 
 func IsDomainValid(uri string) bool {
-	reg := regexp.MustCompile("^(((?!\\-))(xn\\-\\-)?[a-z0-9\\-_]{0,61}[a-z0-9]{1,1}\\.)*(xn\\-\\-)?([a-z0-9\\-]{1,61}|[a-z0-9\\-]{1,30})\\.[a-z]{2,}$")
+	reg := regexp.MustCompile(`^((xn--)?[a-z0-9-]{1,61}\.)*[a-z]{2,}$`)
 	return reg.Match([]byte(uri))
 }
 

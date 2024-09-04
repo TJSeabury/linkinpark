@@ -17,6 +17,7 @@ type job struct {
 	LinksFound   int
 	LinksCrawled int
 	Data         map[string]pageInfo
+	Graph        *Graph[pageInfo]
 	Crawler      *colly.Collector
 }
 
@@ -45,7 +46,19 @@ func NewJob(domain string) job {
 		Status:  "starting",
 		Domain:  domain,
 		Crawler: crawler,
+		Graph: NewGraph[pageInfo](
+			isUnique,
+		),
 	}
+}
+
+func isUnique(g *Graph[pageInfo], value pageInfo) bool {
+	if node, _ := g.FindNodeByValue(func(n *Node[pageInfo]) bool {
+		return value.Url == n.Value.Url
+	}); node != nil {
+		return false
+	}
+	return true
 }
 
 func (j *job) addLinksFound(n int) {
@@ -62,20 +75,26 @@ func (j *job) Start() {
 	j.Status = "crawling"
 
 	j.Data = j.crawl(
-		"http://"+j.Domain,
+		"https://"+j.Domain,
 		make(map[string]pageInfo),
 	)
 
 	j.Status = "done"
-
 }
 
 func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 	log.Println("Checking " + url)
 
+	if !IsUrl(url) {
+		return make(map[string]pageInfo)
+	}
+
+	url, err := NormalizeURL(url)
+	check(err)
+
 	_, exists := pi[url]
 	visited, _ := j.Crawler.HasVisited(url)
-	if exists || !IsUrl(url) || visited {
+	if exists || visited {
 		return make(map[string]pageInfo)
 	}
 
@@ -100,8 +119,8 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 		p.ContentType = headers.Get("Content-Type")
 		p.Size = len(r.Body)
 		jsonHeaders, err := json.Marshal(headers)
-		p.RawHeaders = string(jsonHeaders)
 		check(err)
+		p.RawHeaders = string(jsonHeaders)
 	})
 
 	j.Crawler.OnError(func(r *colly.Response, _ error) {
@@ -142,10 +161,25 @@ func (j *job) crawl(url string, pi map[string]pageInfo) map[string]pageInfo {
 
 	pi[url] = p
 
+	node, err := j.Graph.AddNode(p)
+	if err != nil {
+		panic("failed to AddNode()")
+	}
+
 	for link := range links {
 		res := j.crawl(link, pi)
 		for k, v := range res {
 			pi[k] = v
+			newNode, err := j.Graph.AddNode(v)
+			if err != nil {
+				newNode, err = j.Graph.FindNodeByValue(func(n *Node[pageInfo]) bool {
+					return n.Value.Url == v.Url
+				})
+				if err != nil {
+					panic("node not found, that should not have happened")
+				}
+			}
+			j.Graph.AddEdge(node, newNode)
 		}
 	}
 
